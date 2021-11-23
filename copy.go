@@ -46,6 +46,21 @@ func copyFile(src, dst string, info os.FileInfo, nums chan int64) error {
 		return err
 	}
 
+	// if CoW is possible and reflink=auto - use io.Copy here
+	// should not crash on windows when checking if possible
+
+	// if linux:
+    //      * from another module if syscalls *
+	// 		if src and dst are on the same mount point AND fs is btrfs/zfs/cifs {
+	//          _, err := io.Copy(w, r)
+	//       }
+
+	// or maybe redefine copyFile inside copy_linux.go?
+
+	// No! `io.CopyBuffer` with custom buffer that tracks progress, when `set reflink auto`,
+	// forced buffer `io.CopyBuffer(struct{ io.Writer }{dst}, src, buf)` [1] when `set reflink never`
+	// 1. - https://go.dev/doc/go1.15#os
+
 	for {
 		n, err := r.Read(buf)
 		if err != nil && err != io.EOF {
