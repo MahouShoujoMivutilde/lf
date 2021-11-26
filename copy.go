@@ -85,6 +85,10 @@ func copyFile(src, dst string, info os.FileInfo, nums chan int64) error {
 		return err
 	}
 
+	// Okay, probably even dumber idea - but what if we just use plain `io.Copy()`,
+	// and a go routine to periodically stat the dst, and get progress like that?
+	// Less accurate, but should work.
+
 	// this never runs because ReaderFrom is always picked
 	if written == -1 {
 		for {
