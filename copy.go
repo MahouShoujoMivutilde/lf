@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"log"
 )
 
 func copySize(srcs []string) (int64, error) {
@@ -38,14 +39,18 @@ func iocopyKnockoff(dst io.Writer, src io.Reader) (written int64, err error) {
 	// If the reader has a WriteTo method, use it to do the copy.
 	// Avoids an allocation and a copy.
 	if wt, ok := src.(io.WriterTo); ok {
+		log.Printf("Picked WriterTo")
 		return wt.WriteTo(dst)
 	}
 	// Similarly, if the writer has a ReadFrom method, use it to do the copy.
+	// FIXME it always picks this, even when copy is between different file systems
 	if rt, ok := dst.(io.ReaderFrom); ok {
+		log.Printf("Picked ReaderFrom")
 		return rt.ReadFrom(src)
 	}
 
 	// No support for copy-on-write is not an error, falling back to normal copy
+	log.Printf("Picked original loop copy")
 	return -1, nil
 }
 
@@ -80,6 +85,7 @@ func copyFile(src, dst string, info os.FileInfo, nums chan int64) error {
 		return err
 	}
 
+	// this never runs because ReaderFrom is always picked
 	if written == -1 {
 		for {
 			n, err := r.Read(buf)
@@ -99,6 +105,8 @@ func copyFile(src, dst string, info os.FileInfo, nums chan int64) error {
 
 			nums <- int64(n)
 		}
+	} else {
+		nums <- written
 	}
 
 	if err := w.Close(); err != nil {
