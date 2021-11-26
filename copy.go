@@ -32,6 +32,23 @@ func copySize(srcs []string) (int64, error) {
 	return total, nil
 }
 
+// This is a piece of code from `io.copyBuffer()` responsible for a long chain of
+// actions leading to reflink copy
+func iocopyKnockoff(dst io.Writer, src io.Reader) (written int64, err error) {
+	// If the reader has a WriteTo method, use it to do the copy.
+	// Avoids an allocation and a copy.
+	if wt, ok := src.(io.WriterTo); ok {
+		return wt.WriteTo(dst)
+	}
+	// Similarly, if the writer has a ReadFrom method, use it to do the copy.
+	if rt, ok := dst.(io.ReaderFrom); ok {
+		return rt.ReadFrom(src)
+	}
+
+	// No support for copy-on-write is not an error, falling back to normal copy
+	return -1, nil
+}
+
 func copyFile(src, dst string, info os.FileInfo, nums chan int64) error {
 	buf := make([]byte, 4096)
 
@@ -46,38 +63,42 @@ func copyFile(src, dst string, info os.FileInfo, nums chan int64) error {
 		return err
 	}
 
-	// if CoW is possible and reflink=auto - use io.Copy here
-	// should not crash on windows when checking if possible
+	// Right now this is equivalent to permanent `set reflink auto`
+	//
+	// Ideally this should be `io.CopyBuffer()` with custom buffer that tracks
+	// progress (SOMEHOW*) when `set reflink auto` and it can't reflink;
+	//
+	// The buffer should be forced with `io.CopyBuffer(struct{ io.Writer }{w}, r, buf)` when `set reflink never`,
+	// like here https://go.dev/doc/go1.15#os
+	//
+	// * - ... but I have no idea how to create something like that, hence why I opted for crude `iocopyKnockoff()`
 
-	// if linux:
-    //      * from another module if syscalls *
-	// 		if src and dst are on the same mount point AND fs is btrfs/zfs/cifs {
-	//          _, err := io.Copy(w, r)
-	//       }
+	written, err := iocopyKnockoff(w, r)
+	if err != nil {
+		w.Close()
+		os.Remove(dst)
+		return err
+	}
 
-	// or maybe redefine copyFile inside copy_linux.go?
+	if written == -1 {
+		for {
+			n, err := r.Read(buf)
+			if err != nil && err != io.EOF {
+				w.Close()
+				os.Remove(dst)
+				return err
+			}
 
-	// No! `io.CopyBuffer` with custom buffer that tracks progress, when `set reflink auto`,
-	// forced buffer `io.CopyBuffer(struct{ io.Writer }{dst}, src, buf)` [1] when `set reflink never`
-	// 1. - https://go.dev/doc/go1.15#os
+			if n == 0 {
+				break
+			}
 
-	for {
-		n, err := r.Read(buf)
-		if err != nil && err != io.EOF {
-			w.Close()
-			os.Remove(dst)
-			return err
+			if _, err := w.Write(buf[:n]); err != nil {
+				return err
+			}
+
+			nums <- int64(n)
 		}
-
-		if n == 0 {
-			break
-		}
-
-		if _, err := w.Write(buf[:n]); err != nil {
-			return err
-		}
-
-		nums <- int64(n)
 	}
 
 	if err := w.Close(); err != nil {
