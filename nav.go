@@ -499,6 +499,8 @@ func (nav *nav) loadDirInternal(path string) *dir {
 	go func() {
 		d := newDir(path)
 		d.sort()
+		// no point, loadDirInternal is never called alone
+		// exportNavDirectory(nav, "go.loadDirInternal")
 		d.ind, d.pos = 0, 0
 		if gOpts.dirpreviews {
 			nav.dirPreviewChan <- d
@@ -564,6 +566,7 @@ func (nav *nav) checkDir(dir *dir) {
 		sd := *dir
 		go func() {
 			sd.sort()
+			exportNavDirectory(nav, "checkDir.case.go")
 			sd.loading = false
 			nav.dirChan <- &sd
 		}()
@@ -978,6 +981,7 @@ func (nav *nav) sort() {
 		d.sort()
 		d.sel(name, nav.height)
 	}
+	exportNavDirectory(nav, "nav.sort")
 }
 
 func (nav *nav) setFilter(filter []string) error {
@@ -997,6 +1001,7 @@ func (nav *nav) setFilter(filter []string) error {
 	// Apply filter, by sorting current dir (see nav.sort())
 	name := dir.name()
 	dir.sort()
+	exportNavDirectory(nav, "setFilter")
 	dir.sel(name, nav.height)
 	return nil
 }
@@ -1586,6 +1591,7 @@ func (nav *nav) rename() error {
 			}
 		}
 		dir.sort()
+		exportNavDirectory(nav, "rename")
 	}
 
 	dir.sel(lstat.Name(), nav.height)
@@ -1633,6 +1639,7 @@ func (nav *nav) cd(wd string) error {
 
 	nav.getDirs(wd)
 	nav.addJumpList()
+	exportNavDirectory(nav, "cd")
 	return nil
 }
 
