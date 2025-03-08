@@ -401,6 +401,8 @@ func (app *app) loop() {
 				app.nav.dirCache[d.path] = d
 			}
 
+			exportNavDirectory(app.nav, "loop.case app.nav.dirChan")
+
 			var oldCurrPath string
 			if curr, err := app.nav.currFile(); err == nil {
 				oldCurrPath = curr.path

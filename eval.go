@@ -586,6 +586,7 @@ func preChdir(app *app) {
 
 func onChdir(app *app) {
 	app.nav.addJumpList()
+	exportNavDirectory(app.nav, "onChdir")
 	if cmd, ok := gOpts.cmds["on-cd"]; ok {
 		cmd.eval(app, nil)
 	}
@@ -604,6 +605,8 @@ func onFocusLost(app *app) {
 }
 
 func onInit(app *app) {
+	// XXX: might not be sorted, possibly not needed
+	exportNavDirectory(app.nav, "onInit")
 	if cmd, ok := gOpts.cmds["on-init"]; ok {
 		cmd.eval(app, nil)
 	}
