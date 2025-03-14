@@ -564,7 +564,6 @@ func (nav *nav) checkDir(dir *dir) {
 		sd := *dir
 		go func() {
 			sd.sort()
-			exportFilesInCurrDir(nav, "checkDir.case.go")
 			sd.loading = false
 			nav.dirChan <- &sd
 		}()
