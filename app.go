@@ -401,9 +401,6 @@ func (app *app) loop() {
 				app.nav.dirCache[d.path] = d
 			}
 
-			// FIXME: spams when dircache is false and watch true; only matters with logs
-			exportFilesInCurrDir(app.nav, "loop.case app.nav.dirChan")
-
 			var oldCurrPath string
 			if curr, err := app.nav.currFile(); err == nil {
 				oldCurrPath = curr.path
@@ -433,6 +430,9 @@ func (app *app) loop() {
 			app.watchDir(d)
 
 			app.ui.draw(app.nav)
+
+			// FIXME: spams when dircache is false and watch true; only matters with logs
+			exportFilesInCurrDir(app.nav, "loop.case app.nav.dirChan")
 		case r := <-app.nav.regChan:
 			app.nav.regCache[r.path] = r
 
