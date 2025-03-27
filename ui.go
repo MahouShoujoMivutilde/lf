@@ -1225,8 +1225,7 @@ func listMarks(marks map[string]string) string {
 }
 
 // TODO: consider moving it somewhere to other export* funcs;
-// TODO: maybe make it nav.exportFilesInCurrDir()
-func exportFilesInCurrDir(nav *nav, origin string) {
+func (nav *nav) exportFilesInCurrDir(origin string) {
 	if !nav.init {
 		return
 	}

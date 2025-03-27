@@ -978,7 +978,7 @@ func (nav *nav) sort() {
 		d.sort()
 		d.sel(name, nav.height)
 	}
-	exportFilesInCurrDir(nav, "nav.sort")
+	nav.exportFilesInCurrDir("nav.sort")
 }
 
 func (nav *nav) setFilter(filter []string) error {
@@ -998,7 +998,7 @@ func (nav *nav) setFilter(filter []string) error {
 	// Apply filter, by sorting current dir (see nav.sort())
 	name := dir.name()
 	dir.sort()
-	exportFilesInCurrDir(nav, "setFilter")
+	nav.exportFilesInCurrDir("setFilter")
 	dir.sel(name, nav.height)
 	return nil
 }
@@ -1588,7 +1588,7 @@ func (nav *nav) rename() error {
 			}
 		}
 		dir.sort()
-		exportFilesInCurrDir(nav, "rename")
+		nav.exportFilesInCurrDir("rename")
 	}
 
 	dir.sel(lstat.Name(), nav.height)
@@ -1636,7 +1636,7 @@ func (nav *nav) cd(wd string) error {
 
 	nav.getDirs(wd)
 	nav.addJumpList()
-	exportFilesInCurrDir(nav, "cd")
+	nav.exportFilesInCurrDir("cd")
 	return nil
 }
 

@@ -586,7 +586,7 @@ func preChdir(app *app) {
 
 func onChdir(app *app) {
 	app.nav.addJumpList()
-	exportFilesInCurrDir(app.nav, "onChdir")
+	app.nav.exportFilesInCurrDir("onChdir")
 	if cmd, ok := gOpts.cmds["on-cd"]; ok {
 		cmd.eval(app, nil)
 	}
