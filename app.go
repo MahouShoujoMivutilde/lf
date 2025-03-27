@@ -432,7 +432,7 @@ func (app *app) loop() {
 			app.ui.draw(app.nav)
 
 			// FIXME: spams when dircache is false and watch true; only matters with logs
-			exportFilesInCurrDir(app.nav, "loop.case app.nav.dirChan")
+			app.nav.exportFilesInCurrDir("loop.case app.nav.dirChan")
 		case r := <-app.nav.regChan:
 			app.nav.regCache[r.path] = r
 
