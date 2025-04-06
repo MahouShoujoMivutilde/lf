@@ -1224,22 +1224,6 @@ func listMarks(marks map[string]string) string {
 	return b.String()
 }
 
-// TODO: consider moving it somewhere to other export* funcs;
-func (nav *nav) exportFilesInCurrDir(origin string) {
-	if !nav.init {
-		return
-	}
-	dir := nav.currDir()
-	if dir.loading {
-		return
-	}
-	// log causes flicker when dircache is false and watch true, because watch watches everything
-	// log.Printf("Locking mutex at `%s` for `files`, path = `%s`", origin, dir.path)
-	gState.mutex.Lock()
-	gState.data["files"] = listFiles(dir).String()
-	gState.mutex.Unlock()
-}
-
 func listFiles(dir *dir) *bytes.Buffer {
 	b := new(bytes.Buffer)
 	for _, file := range dir.files {

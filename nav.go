@@ -718,6 +718,21 @@ func (nav *nav) exportFiles() {
 	}
 }
 
+func (nav *nav) exportFilesInCurrDir(origin string) {
+	if !nav.init {
+		return
+	}
+	dir := nav.currDir()
+	if dir.loading {
+		return
+	}
+	// log causes flicker when dircache is false and watch true, because watch watches everything
+	// log.Printf("Locking mutex at `%s` for `files`, path = `%s`", origin, dir.path)
+	gState.mutex.Lock()
+	gState.data["files"] = listFiles(dir).String()
+	gState.mutex.Unlock()
+}
+
 func (nav *nav) dirPreviewLoop(ui *ui) {
 	var prevPath string
 	for dir := range nav.dirPreviewChan {
