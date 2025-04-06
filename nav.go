@@ -1651,7 +1651,6 @@ func (nav *nav) cd(wd string) error {
 
 	nav.getDirs(wd)
 	nav.addJumpList()
-	nav.exportFilesInCurrDir("cd")
 	return nil
 }
 
